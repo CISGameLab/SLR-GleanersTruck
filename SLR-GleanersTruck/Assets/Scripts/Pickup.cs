@@ -5,48 +5,54 @@ using UnityEngine;
 public class Pickup : MonoBehaviour 
 {
 	public GameObject leader;
-	private Rigidbody rb;
 	public bool isPickedUp;
 	private float moveSpeed;
+
+	public MeshRenderer sphereMesh;
+	public MeshRenderer tinMesh;
+
+	public Material spherePick;
+	public Material sphereTruck;
+
+	public Material tinPick;
+	public Material tinTruck;
 	
-	public PlayerController player;
+	private PlayerController player;
 
 	// Use this for initialization
 	void Start () 
 	{
-		rb = GetComponent<Rigidbody>();
 		moveSpeed = 10.0f;
 		isPickedUp = false;
+		sphereMesh.material = spherePick;
+		tinMesh.material = tinPick;
+
+		player = GameObject.FindWithTag("Truck").GetComponent<PlayerController>();
 	}
 
-	void OnCollisionEnter(Collision collision)
+	public void PickUp()
 	{
-		if(collision.gameObject.tag == "Truck" && isPickedUp && player.gameLost)
-		{
-			Destroy(gameObject);
-		}
-		if(collision.gameObject.tag == "Truck" && !isPickedUp)
-		{
-			PlayerController truck = collision.gameObject.GetComponent<PlayerController>();
-			leader = truck.tail;
-			truck.tail = gameObject;
-			gameObject.layer = 9;
-			StartCoroutine(PickUp(truck));
-		}
-    }
+		StartCoroutine(PickUpRoutine());
+	}
 
-	private IEnumerator PickUp(PlayerController truck)
+	private IEnumerator PickUpRoutine()
 	{
+		leader = player.tail;
+		player.tail = gameObject;
+		gameObject.layer = 9;
+
 		yield return new WaitForSeconds(0.25f);
-		
-		transform.position = leader.transform.position;
 
+
+		transform.position = leader.transform.position;
+		sphereMesh.material = sphereTruck;
+		tinMesh.material = tinTruck;
+		
 		yield return new WaitForSeconds(0.25f);
 
 		gameObject.tag = "TruckElement";
 		gameObject.layer = 8;
 		isPickedUp = true;
-		yield return null;
 	}
 
 	private void FixedUpdate()
@@ -61,4 +67,9 @@ public class Pickup : MonoBehaviour
 			transform.position = Vector3.Lerp(transform.position, leader.transform.position + target * player.distance, Time.fixedDeltaTime * moveSpeed);
 		}
 	}
+
+	private void OnDestroy() 
+	{
+        StopAllCoroutines();
+    }
 }

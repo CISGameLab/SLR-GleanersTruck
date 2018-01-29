@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Attractable : MonoBehaviour 
 {
-	public Attractor attractor;
+	private Attractor attractor;
 	private Rigidbody rb;
 
 	private void Start() 
@@ -12,6 +12,8 @@ public class Attractable : MonoBehaviour
 		rb = GetComponent<Rigidbody>();
 		rb.constraints = RigidbodyConstraints.FreezeRotation;
 		rb.useGravity = false;
+
+		attractor = GameObject.FindWithTag("World").GetComponent<Attractor>();
 	}
 	
 	private void Update() 

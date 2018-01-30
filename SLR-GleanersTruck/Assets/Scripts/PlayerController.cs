@@ -34,8 +34,6 @@ public class PlayerController : MonoBehaviour
 	public GameObject menuObj;
 	public Menu menu;
 
-	private bool isMobile;
-
 	private AudioSource[] sounds;
 
 	private void Start() 
@@ -51,40 +49,22 @@ public class PlayerController : MonoBehaviour
 		vcam2.enabled = true;
 		sounds[2].Play();//intro music
 		sounds[4].Play();//car idle
-		if(Application.platform == RuntimePlatform.Android)
-		{
-		 	isMobile = true;
-		}
-		else
-		{
-		 	isMobile = false;
-		}
 	}
 
 	private void Update()
 	{
-		if(isMobile)
+		rotDir = CrossPlatformInputManager.GetAxisRaw("Horizontal");
+		if(Input.touchCount > 0 && rotDir == 0.0f)
 		{
-			if(Input.touchCount > 0)
+			Touch touch = Input.GetTouch(0);
+			if(touch.position.x < Screen.width / 2)
 			{
-				Touch touch = Input.GetTouch(0);
-				if(touch.position.x < Screen.width / 2)
-				{
-					rotDir = -1;
-				}
-				else
-				{
-					rotDir = 1;
-				}
+				rotDir = -1;
 			}
 			else
 			{
-				rotDir = 0;
+				rotDir = 1;
 			}
-		}
-		else
-		{
-			rotDir = CrossPlatformInputManager.GetAxis("Horizontal");
 		}
 	}
 	

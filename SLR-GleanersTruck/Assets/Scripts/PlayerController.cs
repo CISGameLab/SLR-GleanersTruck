@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Cinemachine;
+using UnityStandardAssets.CrossPlatformInput;
 
 public class PlayerController : MonoBehaviour 
 {
-	private Rigidbody rb;
 	private float moveSpeed;
 	private Vector3 moveDir;
 	private float rotDir;
@@ -30,29 +30,62 @@ public class PlayerController : MonoBehaviour
 
 	public CinemachineVirtualCamera vcam1;
 	public CinemachineVirtualCamera vcam2;
-	private CinemachineTransposer transposer;
-	private float lerpTime;
 
 	public GameObject menuObj;
 	public Menu menu;
 
+	private bool isMobile;
+
+	private AudioSource[] sounds;
+
 	private void Start() 
 	{
-		transposer = vcam1.GetCinemachineComponent<CinemachineTransposer>();
-		rb = GetComponent<Rigidbody>();
+		sounds = GetComponents<AudioSource>();
+		highScore = PlayerPrefs.GetInt("score");
+		menu.highScore.text = "High Score: " + highScore.ToString();
 		moveSpeed = 10.0f;
 		rotDir = 0.0f;
 		rotSpeed = 2.5f;
-		lerpTime = 1f;
 		gameLost = true;
 		vcam1.enabled = false;
 		vcam2.enabled = true;
-		//load in high score
+		sounds[2].Play();//intro music
+		sounds[4].Play();//car idle
+		if(Application.platform == RuntimePlatform.Android)
+		{
+		 	isMobile = true;
+		}
+		else
+		{
+		 	isMobile = false;
+		}
 	}
 
 	private void Update()
 	{
-		rotDir = Input.GetAxis("Horizontal");
+		if(isMobile)
+		{
+			if(Input.touchCount > 0)
+			{
+				Touch touch = Input.GetTouch(0);
+				if(touch.position.x < Screen.width / 2)
+				{
+					rotDir = -1;
+				}
+				else
+				{
+					rotDir = 1;
+				}
+			}
+			else
+			{
+				rotDir = 0;
+			}
+		}
+		else
+		{
+			rotDir = CrossPlatformInputManager.GetAxis("Horizontal");
+		}
 	}
 	
 	private void FixedUpdate() 
@@ -60,12 +93,16 @@ public class PlayerController : MonoBehaviour
 		if(!gameLost)
 		{
 			transform.rotation *= Quaternion.Euler(Vector3.up * rotDir * rotSpeed);
-			rb.MovePosition(rb.position + transform.forward * moveSpeed * Time.fixedDeltaTime);
+			Vector3 vel = Vector3.forward * moveSpeed * Time.deltaTime;
+			transform.Translate(vel);
 		}
 	}
 
 	public void RestartGame()
 	{
+		sounds[6].Play();//car start
+		sounds[2].Stop();//menu music
+		sounds[1].Play();//game music
 		vcam1.enabled = true;
 		vcam2.enabled = false;
 		gameLost = false;
@@ -80,6 +117,11 @@ public class PlayerController : MonoBehaviour
 
 	private IEnumerator SpawnInitPickups()
 	{
+		yield return new WaitForSeconds(1f);
+		sounds[3].Play();//car drive
+		SpawnPickup();
+		yield return new WaitForSeconds(1f);
+		SpawnPickup();
 		yield return new WaitForSeconds(1f);
 		SpawnPickup();
 		yield return new WaitForSeconds(1f);
@@ -117,6 +159,7 @@ public class PlayerController : MonoBehaviour
 		StopAllCoroutines();
 		StartCoroutine(Timeout());
 		pickups--;
+		sounds[0].Play();//collect pickups
 		if(pickups == 0)
 		{
 			menuObj.SetActive(true);
@@ -131,7 +174,7 @@ public class PlayerController : MonoBehaviour
 		score = pickups;
 		scoreText.text = score.ToString();
 		moveSpeed = moveSpeed * 1.01f;
-
+		sounds[8].Play();//pick up
 		SpawnPickup();
 	}
 
@@ -151,6 +194,9 @@ public class PlayerController : MonoBehaviour
 
 	private void EndGame()
 	{
+		sounds[7].Play();//crash
+		sounds[3].Stop();//stop driving
+		sounds[1].Stop();//game music
 		vcam1.enabled = false;
 		vcam2.enabled = true;
 		List<GameObject> pickupsToDispose = new List<GameObject>(GameObject.FindGameObjectsWithTag("Pickup"));
@@ -164,12 +210,15 @@ public class PlayerController : MonoBehaviour
 
 	private void SetScore()
 	{
+		sounds[2].Play();//menu music
 		StopAllCoroutines();
 		if(PlayerPrefs.HasKey("score"))
 		{
 			if(score > PlayerPrefs.GetInt("score"))
 			{
 				SetHighScore();
+				sounds[5].Play();//high score
+				//display high score UI
 			}
 		}
 		else
@@ -186,6 +235,10 @@ public class PlayerController : MonoBehaviour
 	private void SetHighScore()
 	{
 		PlayerPrefs.SetInt("score", score);
-		//new high score
+	}
+
+	public void ButtonNoise()
+	{
+		sounds[9].Play();//button noise
 	}
 }

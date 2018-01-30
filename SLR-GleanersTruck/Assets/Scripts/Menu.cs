@@ -41,23 +41,27 @@ public class Menu : MonoBehaviour
 
 	public void HowToPlay()
 	{
+		player.ButtonNoise();
 		howToPlay.SetActive(true);
 		DisableScores();
 	}
 
 	public void Back()
 	{
+		player.ButtonNoise();
 		howToPlay.SetActive(false);
 		EnableScores();
 	}
 
 	public void Quit()
 	{
+		player.ButtonNoise();
 		Application.Quit();
 	}
 
 	public void Play()
 	{
+		player.ButtonNoise();
 		menu.SetActive(false);
 		currentScore.SetActive(true);
 		DisableScores();

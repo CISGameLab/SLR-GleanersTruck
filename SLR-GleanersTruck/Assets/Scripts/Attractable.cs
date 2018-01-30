@@ -12,11 +12,10 @@ public class Attractable : MonoBehaviour
 		rb = GetComponent<Rigidbody>();
 		rb.constraints = RigidbodyConstraints.FreezeRotation;
 		rb.useGravity = false;
-
 		attractor = GameObject.FindWithTag("World").GetComponent<Attractor>();
 	}
 	
-	private void Update() 
+	private void FixedUpdate() 
 	{
 		attractor.Attract(rb);
 	}
